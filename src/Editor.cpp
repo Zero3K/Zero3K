@@ -341,7 +341,7 @@ void Editor::reload()
     m_pStatusbar->update(m_pEditWnd->getCurPos());
 }
 
-void Editor::copyFile(void) {
+void Editor::copyFile(bool bSaveAs) {
     assert(isGoodPtr(this));
     String strPath = m_pDocument->getPath();
     const int nEnd = strPath.find_last_of(_T("\\"));
@@ -351,7 +351,8 @@ void Editor::copyFile(void) {
 
     DisableDebugFill disableDebugFill;
 
-    while (saveFile(GetLastActivePopup(m_hwndMain), &strNewPath, IDS_COPY_FILE, IDD_COPY_CHILD))
+    while (saveFile(GetLastActivePopup(m_hwndMain), &strNewPath,
+        bSaveAs ? IDS_SAVEFILE : IDS_COPY_FILE, IDD_COPY_CHILD))
     {
         if (strNewPath.empty())
         {

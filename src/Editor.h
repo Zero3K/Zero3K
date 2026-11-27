@@ -68,7 +68,7 @@ public:
 
 	void openFile( const String& strPath );
 	void reload();
-	void copyFile( void );
+	void copyFile( bool bSaveAs = false );
 	void printFile( void );
 	bool save( void ) throw();
 	bool saveIfNecessary( void );

@@ -914,6 +914,15 @@ PRIVATE void onFileCopy( HWND hwnd ) {
 }
 
 
+PRIVATE void onFileSaveAs( HWND hwnd ) {
+
+   Editor *pEditor = getEditor( hwnd );
+   if ( pEditor->saveIfNecessary() ) {
+      pEditor->copyFile( true );
+   }
+}
+
+
 PRIVATE void onFilePrint( HWND hwnd ) {
 
    WaitCursor waitCursor;
@@ -1325,6 +1334,7 @@ PRIVATE inline void onCommand(
    COMMAND( ID_FILE_NEW                 , onFileNew                 );
    COMMAND( ID_FILE_NEW_EDITOR          , onFileNewEditor           );
    COMMAND( ID_FILE_OPEN                , onFileOpen                );
+   COMMAND( ID_FILE_SAVEAS              , onFileSaveAs              );
    COMMAND( ID_RELOAD                   , onFileReload              );
    COMMAND( ID_FILE_COPY                , onFileCopy                );
    COMMAND( ID_FILE_PRINT               , onFilePrint               );
