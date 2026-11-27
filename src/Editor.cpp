@@ -12,6 +12,7 @@
 #include "FontDlg.h"
 #include "MRU.h"
 #include "formatMessage.h"
+#include "formatNumber.h"
 #include "mainwnd.h"
 #include "fileUtils.h"
 #include "menuUtils.h"
@@ -424,6 +425,11 @@ Editor::Editor( HWND hwndParent, AutoDocument *ppDocument )
    , m_hfontFixed( 0 )
    , m_isClean( true )
    , m_isWhistleClean( true )
+   , m_editY( 0 )
+   , m_editWidth( 0 )
+   , m_editHeight( 0 )
+   , m_editGutterWidth( 0 )
+   , m_firstVisibleLine( -1 )
 {
    assert( isGoodPtr( this ) );
    assert( isGoodPtr( ppDocument ) );
@@ -442,6 +448,7 @@ Editor::Editor( HWND hwndParent, AutoDocument *ppDocument )
    m_pEditWnd = AbstractEditWnd::create( 
       hwndParent, pszOrgText, this, 0 != m_pDocument->getWordWrap() );
    assert( isGoodPtr( m_pEditWnd ) );
+   m_pLineNumbers = new LineNumberWnd( hwndParent, m_pEditWnd );
 
    refreshToolbar();
    assert( isGoodPtr( m_pToolbar ) );
@@ -600,6 +607,9 @@ void Editor::setFont( bool isFixedFont ) {
    SetWindowFont( *m_pEditWnd, getFont(), true );
    UpdateWindow( *m_pEditWnd );
    m_pEditWnd->sendMessage( EM_REQUESTRESIZE );
+   if ( 0 < m_editWidth ) {
+      layoutEdit( m_editY, m_editWidth, m_editHeight );
+   }
 
    HMENU hmenu = GetMenu( m_hwndMain );
    assert( IsMenu( hmenu ) );
@@ -831,12 +841,67 @@ void Editor::onChange( void ) {
 
    assert( isGoodPtr( this ) );
    updateToolbar();
+   if ( 0 < m_editWidth ) {
+      layoutEdit( m_editY, m_editWidth, m_editHeight );
+   }
 
    m_isClean = false;
    m_isWhistleClean = false;
 
    SetTimer( m_hwndMain, timer_save_document, 
       getAutoSaveTime(), autoSaveTimerProc );
+}
+
+
+void Editor::onViewChange( void ) {
+   const int firstVisibleLine = m_pEditWnd->getFirstVisibleLine();
+   if ( firstVisibleLine != m_firstVisibleLine ) {
+      m_firstVisibleLine = firstVisibleLine;
+      m_pLineNumbers->invalidate();
+   }
+}
+
+
+void Editor::layoutEdit( int y, int width, int height ) {
+   if ( (LineNumberWnd *) 0 == m_pLineNumbers ) {
+      m_editY = y;
+      m_editWidth = width;
+      m_editHeight = height;
+      MoveWindow( *m_pEditWnd, 0, y, width, height, TRUE );
+      return;
+   }
+
+   const String strLastLine = formatNumber(
+      m_pEditWnd->getLineCount() + 1 );
+   int gutterWidth = measureString(
+      strLastLine.c_str(), GetWindowFont( *m_pEditWnd ) ).cx + 10;
+   int nZoomNumerator = 0;
+   int nZoomDenominator = 0;
+   if ( SendMessage(
+           *m_pEditWnd, EM_GETZOOM,
+           reinterpret_cast< WPARAM >( &nZoomNumerator ),
+           reinterpret_cast< LPARAM >( &nZoomDenominator ) ) &&
+        0 < nZoomDenominator )
+   {
+      gutterWidth = MulDiv(
+         gutterWidth, nZoomNumerator, nZoomDenominator );
+   }
+   if ( width < gutterWidth ) {
+      gutterWidth = width;
+   }
+   const bool layoutChanged =
+      y != m_editY || width != m_editWidth || height != m_editHeight ||
+      gutterWidth != m_editGutterWidth;
+   m_editY = y;
+   m_editWidth = width;
+   m_editHeight = height;
+   m_editGutterWidth = gutterWidth;
+   m_firstVisibleLine = m_pEditWnd->getFirstVisibleLine();
+   if ( layoutChanged ) {
+      MoveWindow( *m_pLineNumbers, 0, y, gutterWidth, height, TRUE );
+      MoveWindow( *m_pEditWnd, gutterWidth, y, width - gutterWidth, height, TRUE );
+   }
+   m_pLineNumbers->invalidate();
 }
 
 
@@ -872,6 +937,10 @@ void Editor::onZoomChange( const int zoomPercentage ) {
    if ( (Statusbar *) 0 != m_pStatusbar ) {
       assert( isGoodPtr( m_pStatusbar ) );
       m_pStatusbar->update( zoomPercentage );
+   }
+   if ( 0 < m_editWidth ) {
+      layoutEdit( m_editY, m_editWidth, m_editHeight );
+      m_pLineNumbers->invalidate();
    }
 }
 

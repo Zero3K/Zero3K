@@ -171,6 +171,7 @@
     <ClCompile Include="..\src\RegRename.cpp" />
     <ClCompile Include="..\src\resolveName.cpp" />
     <ClCompile Include="..\src\RichEditWnd.cpp" />
+    <ClCompile Include="..\src\LineNumberWnd.cpp" />
     <ClCompile Include="..\src\saveFile.cpp" />
     <ClCompile Include="..\src\search.cpp" />
     <ClCompile Include="..\src\setup.cpp" />

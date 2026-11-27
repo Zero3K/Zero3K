@@ -201,6 +201,7 @@
     <ClInclude Include="src\InstallDlg1.h" />
     <ClInclude Include="src\InstanceSubclasser.h" />
     <ClInclude Include="src\language.h" />
+    <ClInclude Include="src\LineNumberWnd.h" />
     <ClInclude Include="src\main_class.h" />
     <ClInclude Include="src\mainwnd.h" />
     <ClInclude Include="src\MenuFont.h" />
@@ -305,6 +306,7 @@
     <ClCompile Include="src\RegRename.cpp" />
     <ClCompile Include="src\resolveName.cpp" />
     <ClCompile Include="src\RichEditWnd.cpp" />
+    <ClCompile Include="src\LineNumberWnd.cpp" />
     <ClCompile Include="src\saveFile.cpp" />
     <ClCompile Include="src\search.cpp" />
     <ClCompile Include="src\setup.cpp" />
