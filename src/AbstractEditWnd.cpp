@@ -302,6 +302,36 @@ LRESULT AbstractEditWnd::dispatch(
 		result = Window::dispatch( msg, wParam, lParam );
 	}
 
+	switch ( msg ) {
+	case WM_KEYDOWN:
+	case WM_MOUSEWHEEL:
+	case WM_VSCROLL:
+	case WM_HSCROLL:
+	case WM_SIZE:
+	case WM_SETTEXT:
+	case EM_LINESCROLL:
+	case EM_SCROLL:
+	case EM_SCROLLCARET:
+		if ( 0 != getEditListener() ) {
+			getEditListener()->onViewChange();
+		}
+		break;
+	}
+	if ( EM_SETZOOM == msg && 0 != getEditListener() ) {
+		int numerator = 0;
+		int denominator = 0;
+		if ( sendMessage( EM_GETZOOM,
+				reinterpret_cast< WPARAM >( &numerator ),
+				reinterpret_cast< LPARAM >( &denominator ) ) &&
+			 0 < denominator )
+		{
+			m_numerator = numerator;
+			m_denominator = denominator;
+			getEditListener()->onZoomChange(
+				MulDiv( 100, numerator, denominator ) );
+		}
+	}
+
 	/* TODO -- backspace to match lines above at start of line! */
 	// Own function for this!
 	if ( WM_CHAR == msg && VK_RETURN == wParam && !this->isReadOnly() ) {

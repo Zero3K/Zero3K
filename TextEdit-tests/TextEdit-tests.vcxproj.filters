@@ -184,6 +184,9 @@
     <ClCompile Include="..\src\RichEditWnd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\LineNumberWnd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\saveFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -5,6 +5,7 @@
 #pragma once
 
 #include "AbstractEditWnd.h"
+#include "LineNumberWnd.h"
 #include "String.h"
 #include "Document.h"
 #include "Toolbar.h"
@@ -24,6 +25,7 @@ private:
 	HWND          m_hwndMain;
 	HACCEL        m_haccel;
 	AutoEditWnd   m_pEditWnd;
+	AutoPtr< LineNumberWnd > m_pLineNumbers;
 	AutoDocument  m_pDocument;
 	AutoToolbar   m_pToolbar;
 	AutoStatusbar m_pStatusbar;
@@ -37,6 +39,11 @@ private:
 	bool m_hasFixedFont;
 	bool m_isClean;
 	bool m_isWhistleClean;
+	int m_editY;
+	int m_editWidth;
+	int m_editHeight;
+	int m_editGutterWidth;
+	int m_firstVisibleLine;
 
 	LPTSTR getContents( void );
 	void updateToolbar( void );
@@ -62,13 +69,14 @@ public:
 	void refreshToolbar( void );
 	void setSettings( void );
 	void setWordWrap( bool bOn );
+	void layoutEdit( int y, int width, int height );
 
 	void loadAcceleratorTable( HINSTANCE = getModuleHandle() );
 	int run();
 
 	void openFile( const String& strPath, bool checkForExistingInstance = true );
 	void reload();
-	void copyFile( void );
+	void copyFile( bool bSaveAs = false );
 	void printFile( void );
 	bool save( void ) throw();
 	bool saveIfNecessary( void );
@@ -102,6 +110,7 @@ public:
 
 protected: // implementation of EditListener
 	virtual void onChange   ( void );
+	virtual void onViewChange( void );
 	virtual void onMaxText  ( void );
 	virtual void onErrSpace ( void );
 	virtual void onPosChange( const Point& position );

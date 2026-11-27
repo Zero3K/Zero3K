@@ -10,7 +10,7 @@ TextEdit was originally written as the companion program to my book Programming 
 
 TextEdit demonstrates a number of things:
 
-* There is no _Save_ command. TextEdit follows Allan Cooper's unified file model, where all changes are committed directly to disk.
+* TextEdit follows Allan Cooper's unified file model, where changes are committed directly to disk; explicit Save and Save As commands are also available.
 * Error handling and robustness.
 * [Persistence everywhere](docs/Chapter-10-Customization-and-Persistence.md).
 * Send as email.

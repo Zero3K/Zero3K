@@ -276,6 +276,9 @@ BEGIN
         MENUITEM "New &Tab\tCtrl+N",             ID_FILE_NEW
         MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
         MENUITEM SEPARATOR
+        MENUITEM "&Save\tCtrl+S",               ID_COMMAND_SAVE
+        MENUITEM "Save &As...\tCtrl+Shift+S",   ID_FILE_SAVEAS
+        MENUITEM SEPARATOR
         MENUITEM "Propert&ies...\tAlt+Enter",   ID_FILE_PROPERTIES
         MENUITEM "Mo&ve/Rename...",             ID_FILE_RENAME
         MENUITEM "Make Copy...",                ID_FILE_COPY
@@ -359,6 +362,9 @@ BEGIN
     BEGIN
         MENUITEM "New &Tab\tCtrl+N",             ID_FILE_NEW
         MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM SEPARATOR
+        MENUITEM "&Save\tCtrl+S",               ID_COMMAND_SAVE
+        MENUITEM "Save &As...\tCtrl+Shift+S",   ID_FILE_SAVEAS
         MENUITEM SEPARATOR
         MENUITEM "Propert&ies...\tAlt+Enter",   ID_FILE_PROPERTIES
         MENUITEM "Mo&ve/Rename...",             ID_FILE_RENAME
@@ -872,6 +878,7 @@ BEGIN
     "L",            ID_COMMAND_DELETELINE,  VIRTKEY, CONTROL, NOINVERT
     "R",            ID_COMMAND_READONLY,    VIRTKEY, ALT, NOINVERT
     "S",            ID_COMMAND_SAVE,        VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_SAVEAS,         VIRTKEY, CONTROL, SHIFT, NOINVERT
     VK_DOWN,        ID_COMMAND_SCROLLDOWN,  VIRTKEY, CONTROL, NOINVERT
     VK_UP,          ID_COMMAND_SCROLLUP,    VIRTKEY, CONTROL, NOINVERT
     "T",            ID_COMMAND_TABS,        VIRTKEY, ALT, NOINVERT
@@ -1164,5 +1171,4 @@ END
 
 #endif    // Norwegian, Bokm�l (Norway) resources
 /////////////////////////////////////////////////////////////////////////////
-
 

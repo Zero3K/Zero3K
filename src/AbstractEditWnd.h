@@ -124,6 +124,7 @@ public:
 class EditListener {
 public:
    virtual void onChange   ( void ) = 0;
+   virtual void onViewChange( void ) = 0;
    virtual void onMaxText  ( void ) = 0;
    virtual void onErrSpace ( void ) = 0;
    virtual void onPosChange( const Point& position ) = 0;
