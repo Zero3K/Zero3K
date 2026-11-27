@@ -261,6 +261,7 @@
 #define ID_HELP_HOMEPAGE                40118
 #define ID_FILE_SENDTO_MAILRECIPIENT    40119
 #define ID_RELOAD                       40120
+#define ID_FILE_SAVEAS                  40122
 #define IDS_VERSION                     57645
 #define IDS_TABS                        57646
 #define IDS_STRING_NOT_FOUND            57647
@@ -298,7 +299,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        172
-#define _APS_NEXT_COMMAND_VALUE         40122
+#define _APS_NEXT_COMMAND_VALUE         40123
 #define _APS_NEXT_CONTROL_VALUE         1076
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
