@@ -331,8 +331,7 @@ PRIVATE void onSize( HWND hwnd, UINT state, int cx, int cy ) {
          cy -= y;
       }
 
-      AbstractEditWnd *pEditWnd = getEditWnd( hwnd );
-      MoveWindow( *pEditWnd, 0, y, cx, cy, true );
+      getEditor( hwnd )->layoutEdit( y, cx, cy );
    }
 
    // One might think that it would be more efficient to just
