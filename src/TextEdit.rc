@@ -251,6 +251,7 @@ END
 /////////////////////////////////////////////////////////////////////////////
 
 
+
 /////////////////////////////////////////////////////////////////////////////
 // English (United States) resources
 
@@ -272,7 +273,7 @@ IDR_MENU MENU
 BEGIN
     POPUP "&File"
     BEGIN
-        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "New &Tab\tCtrl+N",             ID_FILE_NEW
         MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
         MENUITEM SEPARATOR
         MENUITEM "Propert&ies...\tAlt+Enter",   ID_FILE_PROPERTIES
@@ -289,7 +290,7 @@ BEGIN
             MENUITEM "&System",                     171
         END
         MENUITEM SEPARATOR
-        MENUITEM "&Close\tAlt+F4",              ID_FILE_CLOSE
+        MENUITEM "Close &Tab\tCtrl+W",           ID_FILE_CLOSE
         MENUITEM "New &Window\tCtrl+Shift+N",   ID_FILE_NEW_EDITOR
         MENUITEM SEPARATOR
         MENUITEM "<MRU list>",                  ID_MRU_1, GRAYED
@@ -321,7 +322,7 @@ BEGIN
         MENUITEM "&Tool Bar",                   ID_VIEW_TOOLBAR
         MENUITEM "&Status Bar",                 ID_VIEW_STATUSBAR
         MENUITEM SEPARATOR
-        MENUITEM "&Word Wrap\tCtrl+W",          ID_VIEW_WORDWRAP
+        MENUITEM "&Word Wrap",                   ID_VIEW_WORDWRAP
         MENUITEM SEPARATOR
         MENUITEM "&Fixed Font",                 ID_VIEW_FIXEDFONT
         MENUITEM "&Proportional Font",          ID_VIEW_PROPORTIONALFONT
@@ -356,7 +357,7 @@ IDR_MENU MENU
 BEGIN
     POPUP "&File"
     BEGIN
-        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "New &Tab\tCtrl+N",             ID_FILE_NEW
         MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
         MENUITEM SEPARATOR
         MENUITEM "Propert&ies...\tAlt+Enter",   ID_FILE_PROPERTIES
@@ -373,7 +374,7 @@ BEGIN
             MENUITEM "&System",                     ID_SENDTO_SYSTEM
         END
         MENUITEM SEPARATOR
-        MENUITEM "&Close\tAlt+F4",              ID_FILE_CLOSE
+        MENUITEM "Close &Tab\tCtrl+W",           ID_FILE_CLOSE
         MENUITEM "New &Window\tCtrl+Shift+N",   ID_FILE_NEW_EDITOR
         MENUITEM SEPARATOR
         MENUITEM "<MRU list>",                  ID_MRU_1, GRAYED
@@ -405,7 +406,7 @@ BEGIN
         MENUITEM "&Tool Bar",                   ID_VIEW_TOOLBAR
         MENUITEM "&Status Bar",                 ID_VIEW_STATUSBAR
         MENUITEM SEPARATOR
-        MENUITEM "&Word Wrap\tCtrl+W",          ID_VIEW_WORDWRAP
+        MENUITEM "&Word Wrap",                   ID_VIEW_WORDWRAP
         MENUITEM SEPARATOR
         MENUITEM "&Fixed Font",                 ID_VIEW_FIXEDFONT
         MENUITEM "&Proportional Font",          ID_VIEW_PROPORTIONALFONT
@@ -892,7 +893,7 @@ BEGIN
     VK_RETURN,      ID_FILE_PROPERTIES,     VIRTKEY, ALT, NOINVERT
     VK_F6,          ID_MRU_2,               VIRTKEY, CONTROL, NOINVERT
     "F",            ID_VIEW_SETFONT,        VIRTKEY, SHIFT, CONTROL, NOINVERT
-    "W",            ID_VIEW_WORDWRAP,       VIRTKEY, CONTROL, NOINVERT
+    "W",            ID_FILE_CLOSE,          VIRTKEY, CONTROL, NOINVERT
     VK_F5,          ID_RELOAD,              VIRTKEY, NOINVERT
 END
 
@@ -912,9 +913,9 @@ IDR_HLP_FILE            FILE                    "Help\\TEXTEDIT.HLP"
 
 STRINGTABLE
 BEGIN
-    ID_FILE_NEW             "Create a new file\nNew (Ctrl+N)"
+    ID_FILE_NEW             "Create a new tab\nNew Tab (Ctrl+N)"
     ID_FILE_OPEN            "Open another file...\nOpen (Ctrl+O)"
-    ID_FILE_CLOSE           "Close the TextEdit window\nClose"
+    ID_FILE_CLOSE           "Close the current tab\nClose Tab (Ctrl+W)"
     ID_FILE_PRINT           "Print <b>%1</b>...\nPrint (Ctrl+P)"
     ID_EDIT_UNDO            "Undo last change\nUndo (Ctrl+Z)"
     ID_EDIT_REDO            "Redo last Undo\nRedo (Ctrl+Y)"
@@ -1027,7 +1028,7 @@ BEGIN
     IDS_INSTALL_SEARCH      "Searching for a previous installation..."
     IDS_DIDNT_SAVE_FILE     "Failed to save <b>%1</b>"
     ID_FILE_PAGESETUP       "Page setup for <b>%1</b> (margins, printer)..."
-    ID_VIEW_WORDWRAP        "Toggle Word Wrap mode on or off\nToggle Word Wrap (Ctrl+W)"
+    ID_VIEW_WORDWRAP        "Toggle Word Wrap mode on or off\nToggle Word Wrap"
     ID_VIEW_OPTIONS         "Opens options dialog box..."
     IDS_INSTALL_FOUND       "<b>TextEdit</b> version %1 was found"
 END

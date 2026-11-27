@@ -310,15 +310,20 @@ void Editor::saveState( ) {
 
 // Note: activateOldInstance will activate us, 
 // too, if we're reloading the same file!
-void Editor::openFile( const String& strPath ) {
+void Editor::openFile( const String& strPath, bool checkForExistingInstance ) {
 
    assert( isGoodPtr( this ) );
    TemporaryStatusIcon statusIcon( m_pStatusbar, STD_FILEOPEN );
-   if ( !activateOldInstance( strPath.c_str() ) ) {
+   if ( !checkForExistingInstance ||
+        !activateOldInstance( strPath.c_str() ) )
+   {
       WaitCursor waitCursor( _T( "load.ani" ) );
       m_pStatusbar->setMessage( IDS_LOADING, strPath.c_str() );
       Document *pNewDcument = new Document( m_hwndMain, strPath.c_str() );
       setDocument( pNewDcument );
+      m_pEditWnd->setFirstVisibleLine( m_pDocument->getFirstLine() );
+      m_pEditWnd->setSel(
+         m_pDocument->getSelStart(), m_pDocument->getSelEnd() );
       setSettings();
       updateToolbar();
       m_pStatusbar->update( m_pEditWnd->getCurPos() );

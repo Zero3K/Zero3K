@@ -66,7 +66,7 @@ public:
 	void loadAcceleratorTable( HINSTANCE = getModuleHandle() );
 	int run();
 
-	void openFile( const String& strPath );
+	void openFile( const String& strPath, bool checkForExistingInstance = true );
 	void reload();
 	void copyFile( void );
 	void printFile( void );

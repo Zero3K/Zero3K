@@ -118,6 +118,7 @@
 #define IDC_LANGUAGE_LABEL              1072
 #define IDC_DOC_PATH                    1074
 #define IDC_NEW_WINDOW                  1075
+#define IDC_TABBAR                      1076
 #define ID_FILE_NEW                     40006
 #define ID_FILE_OPEN                    40007
 #define ID_FILE_CLOSE                   40008
