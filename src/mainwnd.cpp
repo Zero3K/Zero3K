@@ -40,6 +40,7 @@
 #include "timers.h"
 #include "resource.h"
 #include "wnd_snap.h"
+#include <vector>
 
 #include "Help/map.hh"
 
@@ -55,12 +56,18 @@
 #define HANDLE_WM_APP( hwnd, wParam, lParam, fn ) \
    (fn)((hwnd), static_cast< ATOM >( lParam ))
 
+#define WM_APP_SELECTTAB ( WM_APP + 1 )
+
 
 PRIVATE String s_strLast;
 PRIVATE HWND s_hwndNextClipboardViewer;
+PRIVATE HWND s_hwndTabBar;
+PRIVATE std::vector< String > s_tabPaths;
+PRIVATE int s_nCurrentTab = 0;
 
 
 PRIVATE void onSize( HWND hwnd, UINT state, int cx, int cy );
+PRIVATE void selectTab( HWND hwnd, int index );
 
 
 PRIVATE inline Toolbar *getToolbar( HWND hwnd ) {
@@ -140,6 +147,77 @@ PRIVATE inline void setEditor( HWND hwnd, Editor *pEditor ) {
 }
 
 
+PRIVATE String getTabTitle( const String& strPath ) {
+
+   const String::size_type nSeparator =
+      strPath.find_last_of( _T( "\\/" ) );
+   return String::npos == nSeparator
+      ? strPath : strPath.substr( nSeparator + 1 );
+}
+
+
+PRIVATE void setTabItem( int index, const String& strTitle ) {
+
+   assert( IsWindow( s_hwndTabBar ) );
+   TCITEM item = { 0 };
+   item.mask = TCIF_TEXT;
+   item.pszText = const_cast< LPTSTR >( strTitle.c_str() );
+   verify( TabCtrl_SetItem( s_hwndTabBar, index, &item ) );
+}
+
+
+PRIVATE void insertTab( int index, const String& strPath ) {
+
+   assert( IsWindow( s_hwndTabBar ) );
+   const String strTitle = getTabTitle( strPath );
+   TCITEM item = { 0 };
+   item.mask = TCIF_TEXT;
+   item.pszText = const_cast< LPTSTR >( strTitle.c_str() );
+   verify( -1 != TabCtrl_InsertItem( s_hwndTabBar, index, &item ) );
+}
+
+
+PRIVATE int getTabBarHeight( void ) {
+
+   RECT rcItem = { 0 };
+   if ( 0 < TabCtrl_GetItemCount( s_hwndTabBar ) &&
+        TabCtrl_GetItemRect( s_hwndTabBar, 0, &rcItem ) )
+   {
+      return rcItem.bottom + 4;
+   }
+   return GetSystemMetrics( SM_CYSMCAPTION ) + 8;
+}
+
+
+PRIVATE void selectTab( HWND hwnd, int index ) {
+
+   if ( index < 0 || index >= static_cast< int >( s_tabPaths.size() ) ||
+        index == s_nCurrentTab )
+   {
+      return;
+   }
+
+   Editor *pEditor = getEditor( hwnd );
+   if ( !pEditor->saveIfNecessary() ) {
+      TabCtrl_SetCurSel( s_hwndTabBar, s_nCurrentTab );
+      return;
+   }
+   pEditor->saveState();
+   try {
+      pEditor->openFile( s_tabPaths[ index ], false );
+   }
+   catch ( ... ) {
+      TabCtrl_SetCurSel( s_hwndTabBar, s_nCurrentTab );
+      throw;
+   }
+   s_nCurrentTab = index;
+   TabCtrl_SetCurSel( s_hwndTabBar, index );
+   setTabItem( index, pEditor->getDocument()->getTitle() );
+   pEditor->setTitle();
+   enablePaste( hwnd );
+}
+
+
 PRIVATE void removeSendToSubMenu( HMENU hmenu ) {
 
    assert( IsMenu( hmenu ) );
@@ -179,6 +257,20 @@ PRIVATE bool onCreate( HWND hwnd, CREATESTRUCT FAR* lpCreateStruct ) {
 
    Editor *pEditor = new Editor( hwnd, ppDocument );
    setEditor( hwnd, pEditor );
+
+   s_tabPaths.clear();
+   s_tabPaths.push_back( pEditor->getDocument()->getPath() );
+   s_nCurrentTab = 0;
+   s_hwndTabBar = CreateWindowEx(
+      0, WC_TABCONTROL, _T( "" ),
+      WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | TCS_TABS | TCS_SINGLELINE,
+      0, 0, 0, 0, hwnd, (HMENU) IDC_TABBAR, getModuleHandle(), 0 );
+   assert( IsWindow( s_hwndTabBar ) );
+   if ( !IsWindow( s_hwndTabBar ) ) {
+      throwException( _T( "Failed to create tab bar" ) );
+   }
+   insertTab( 0, s_tabPaths[ 0 ] );
+   TabCtrl_SetCurSel( s_hwndTabBar, 0 );
 
    // NOTE: From this point until the AutoEditor in WinMain has
    // been initialized, pEditor is vulnerable to leakage.
@@ -227,6 +319,7 @@ PRIVATE void onDestroy( const HWND hwnd ) {
 
    getEditor( hwnd )->saveState();
    assert( getEditor( hwnd )->isClean() );
+   s_tabPaths.clear();
 
    // SetMenu results in a number of messages, including
    // WM_SIZE. onSize throws a NullPointerException if
@@ -235,6 +328,7 @@ PRIVATE void onDestroy( const HWND hwnd ) {
    verify( DestroyMenu( GetMenu( hwnd ) ) );
    SetMenu( hwnd, 0 );
    setEditor( hwnd, 0 );
+   s_hwndTabBar = 0;
 
    WinHelp( hwnd, getHelpFile(), HELP_QUIT, 0 );
    ChangeClipboardChain( hwnd, s_hwndNextClipboardViewer );
@@ -245,8 +339,9 @@ PRIVATE void onDestroy( const HWND hwnd ) {
 
 PRIVATE void onClose ( HWND hwnd ) {
 
-   getEditor( hwnd )->saveIfNecessary();
-   DestroyWindow( hwnd );
+   if ( getEditor( hwnd )->saveIfNecessary() ) {
+      DestroyWindow( hwnd );
+   }
 }
 
 
@@ -254,8 +349,63 @@ PRIVATE void openFile( HWND hwnd, const String& str ) {
 
    Editor *pEditor = getEditor( hwnd );
    if ( pEditor->saveIfNecessary() ) {
+      pEditor->saveState();
       pEditor->openFile( str );
+      if ( areFileNamesEqual( pEditor->getDocument()->getPath(), str ) ) {
+         s_tabPaths[ s_nCurrentTab ] = pEditor->getDocument()->getPath();
+         setTabItem( s_nCurrentTab, pEditor->getDocument()->getTitle() );
+      }
    }
+   enablePaste( hwnd );
+}
+
+
+PRIVATE void onFileNew( HWND hwnd ) {
+
+   Editor *pEditor = getEditor( hwnd );
+   if ( !pEditor->saveIfNecessary() ) {
+      return;
+   }
+   pEditor->saveState();
+
+   const String strPath = createNewFile( hwnd );
+   if ( strPath.empty() ) {
+      return;
+   }
+   pEditor->openFile( strPath, false );
+
+   s_tabPaths.push_back( pEditor->getDocument()->getPath() );
+   s_nCurrentTab = static_cast< int >( s_tabPaths.size() ) - 1;
+   insertTab( s_nCurrentTab, s_tabPaths[ s_nCurrentTab ] );
+   TabCtrl_SetCurSel( s_hwndTabBar, s_nCurrentTab );
+   setTabItem( s_nCurrentTab, pEditor->getDocument()->getTitle() );
+   pEditor->setTitle();
+   enablePaste( hwnd );
+}
+
+
+PRIVATE void onFileClose( HWND hwnd ) {
+
+   Editor *pEditor = getEditor( hwnd );
+   if ( !pEditor->saveIfNecessary() ) {
+      return;
+   }
+   pEditor->saveState();
+
+   if ( 1 == s_tabPaths.size() ) {
+      PostMessage( hwnd, WM_CLOSE, 0, 0 );
+      return;
+   }
+
+   const int nCurrentTab = s_nCurrentTab;
+   const int nNextTab = 0 == nCurrentTab ? 1 : nCurrentTab - 1;
+   pEditor->openFile( s_tabPaths[ nNextTab ], false );
+   s_tabPaths.erase( s_tabPaths.begin() + nCurrentTab );
+   verify( TabCtrl_DeleteItem( s_hwndTabBar, nCurrentTab ) );
+   s_nCurrentTab = 0 == nCurrentTab ? 0 : nCurrentTab - 1;
+   TabCtrl_SetCurSel( s_hwndTabBar, s_nCurrentTab );
+   setTabItem( s_nCurrentTab, pEditor->getDocument()->getTitle() );
+   pEditor->setTitle();
    enablePaste( hwnd );
 }
 
@@ -330,6 +480,11 @@ PRIVATE void onSize( HWND hwnd, UINT state, int cx, int cy ) {
          y = rc.height();
          cy -= y;
       }
+
+      const int nTabBarHeight = getTabBarHeight();
+      MoveWindow( s_hwndTabBar, 0, y, cx, nTabBarHeight, true );
+      y += nTabBarHeight;
+      cy -= nTabBarHeight;
 
       getEditor( hwnd )->layoutEdit( y, cx, cy );
    }
@@ -491,15 +646,17 @@ PRIVATE inline BOOL onApp( const HWND hwnd, ATOM atomDocName ) {
       return FALSE;
    }
 
-   const Document *pDocument = getDocument( hwnd );
-   assert( isGoodConstPtr( pDocument ) );
-
 #if 0 // Test code
    messageBox( hwnd, MB_OK, _T( "atom = %1!d! (%2!#x!)\nname = [%3]" ),
       atomDocName, atomDocName, szDocName );
 #endif
 
-   return 0 != pDocument && areFileNamesEqual( pDocument->getPath(), szDocName );
+   for ( int index = 0; index < static_cast< int >( s_tabPaths.size() ); ++index ) {
+      if ( areFileNamesEqual( s_tabPaths[ index ], szDocName ) ) {
+         return PostMessage( hwnd, WM_APP_SELECTTAB, index, 0 );
+      }
+   }
+   return FALSE;
 }
 
 PRIVATE bool isExecutable(LPCTSTR title) {
@@ -858,12 +1015,6 @@ PRIVATE void onFindPrevSelection( HWND hwnd ) {
 }
 
 
-PRIVATE void onFileNew( HWND hwnd ) {
-
-   openFile( hwnd, createNewFile( hwnd ) );
-}
-
-
 PRIVATE void onFileNewEditor( HWND hwnd ) {
 
    startInstance( _T( "" ) );
@@ -1002,6 +1153,8 @@ PRIVATE void onFilePageSetup( HWND hwnd ) {
 PRIVATE void onFilePropsChanged( HWND hwnd ) {
 
    getEditor( hwnd )->setTitle();
+   s_tabPaths[ s_nCurrentTab ] = getDocument( hwnd )->getPath();
+   setTabItem( s_nCurrentTab, getDocument( hwnd )->getTitle() );
    getStatusbar( hwnd )->setFileType(
       getDocument( hwnd )->isUnicode() );
    const bool bReadOnly = getDocument( hwnd )->isReadOnly();
@@ -1050,7 +1203,7 @@ PRIVATE void onFileDelete( HWND hwnd ) {
         getDocument( hwnd )->deleteFile( hwnd ) )
    {
       getEditor( hwnd )->clean();
-      PostMessage( hwnd, WM_CLOSE, 0, 0 );
+      onFileClose( hwnd );
    }
 }
 
@@ -1059,12 +1212,6 @@ PRIVATE void onFileAbandonChanges( HWND hwnd ) {
 
    WaitCursor waitCursor( _T( "load.ani" ) );
    getEditor( hwnd )->restoreOriginal();
-}
-
-
-PRIVATE void onFileClose( HWND hwnd ) {
-
-   PostMessage( hwnd, WM_CLOSE, 0, 0 );
 }
 
 
@@ -1445,6 +1592,23 @@ LRESULT CALLBACK mainWndProc(
    HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam )
 {
    switch ( msg ) {
+
+   case WM_APP_SELECTTAB:
+      selectTab( hwnd, static_cast< int >( wParam ) );
+      return 0;
+
+   case WM_NOTIFY:
+      {
+         NMHDR *pHdr = reinterpret_cast< NMHDR * >( lParam );
+         if ( IsWindow( s_hwndTabBar ) &&
+              s_hwndTabBar == pHdr->hwndFrom &&
+              TCN_SELCHANGE == pHdr->code )
+         {
+            selectTab( hwnd, TabCtrl_GetCurSel( s_hwndTabBar ) );
+            return 0;
+         }
+      }
+      break;
 
    HANDLE_MSG( hwnd, WM_CREATE         , onCreate          );
    HANDLE_MSG( hwnd, WM_ACTIVATE       , onActivate        );
