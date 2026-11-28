@@ -250,53 +250,6 @@ LRESULT AbstractEditWnd::dispatch(
 	UINT msg, WPARAM wParam, LPARAM lParam ) 
 {
 	assertValid();
-	static bool bLock = false;
-	if ( !bLock ) {
-		bLock = true;
-
-		int nStart = 0;
-		int nEnd = 0;
-		getSel( &nStart, &nEnd );
-
-		const int nLine = lineFromChar( nStart );
-		const int nColumn = nStart - sendMessage( EM_LINEINDEX, nLine );
-		int numerator = 0;
-		int denominator = 0;
-		bool zoomChanged = false;
-		if ( sendMessage( EM_GETZOOM,
-			reinterpret_cast< WPARAM >( &numerator   ),
-			reinterpret_cast< WPARAM >( &denominator ) ) )
-		{
-			zoomChanged = numerator != this->m_numerator ||
-			            denominator != this->m_denominator;
-		}
-		assert( 0 <= nLine );
-		assert( 0 <= nColumn );
-		if ( nColumn != m_nCurColumn || 
-			 nLine   != m_nCurLine   || 
-			 nEnd    != m_nLastEnd   || zoomChanged )
-		{
-			EditListener *pListener = getEditListener();
-			if ( 0 != pListener ) { // May be 0 during startup
-				m_nCurLine   = nLine;
-				m_nCurColumn = nColumn;
-				m_nLastEnd   = nEnd;
-				this->m_numerator = numerator;
-				this->m_denominator = denominator;
-				pListener->onPosChange( Point( nColumn, nLine ) );
-				if (  zoomChanged ) {
-					int zoomPercentage = 100;
-					if ( 0 < denominator ) {
-						zoomPercentage = MulDiv( 100, numerator, denominator );
-					}
-					pListener->onZoomChange( zoomPercentage );
-				}
-			} else {
-				resetPosition();
-			}
-		}
-		bLock = false;
-	}
 
 	// Indent/outdent?
 	// TODO: Extract into own proc(s)
@@ -367,6 +320,54 @@ LRESULT AbstractEditWnd::dispatch(
 		// Never sent...
 		trace( _T( "FindWordBreak: %d\n" ), result );
 	}
+	static bool bLock = false;
+	if ( WM_DESTROY != msg && WM_NCDESTROY != msg && !bLock ) {
+		bLock = true;
+
+		int nStart = 0;
+		int nEnd = 0;
+		getSel( &nStart, &nEnd );
+
+		const int nLine = lineFromChar( nStart );
+		const int nColumn = nStart - sendMessage( EM_LINEINDEX, nLine );
+		int numerator = 0;
+		int denominator = 0;
+		bool zoomChanged = false;
+		if ( sendMessage( EM_GETZOOM,
+			reinterpret_cast< WPARAM >( &numerator   ),
+			reinterpret_cast< WPARAM >( &denominator ) ) )
+		{
+			zoomChanged = numerator != this->m_numerator ||
+			            denominator != this->m_denominator;
+		}
+		assert( 0 <= nLine );
+		assert( 0 <= nColumn );
+		if ( nColumn != m_nCurColumn ||
+			 nLine   != m_nCurLine   ||
+			 nEnd    != m_nLastEnd   || zoomChanged )
+		{
+			EditListener *pListener = getEditListener();
+			if ( 0 != pListener ) { // May be 0 during startup
+				m_nCurLine   = nLine;
+				m_nCurColumn = nColumn;
+				m_nLastEnd   = nEnd;
+				this->m_numerator = numerator;
+				this->m_denominator = denominator;
+				pListener->onPosChange( Point( nColumn, nLine ) );
+				if (  zoomChanged ) {
+					int zoomPercentage = 100;
+					if ( 0 < denominator ) {
+						zoomPercentage = MulDiv( 100, numerator, denominator );
+					}
+					pListener->onZoomChange( zoomPercentage );
+				}
+			} else {
+				resetPosition();
+			}
+		}
+		bLock = false;
+	}
+
 	return result;
 }
 
