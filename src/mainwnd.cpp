@@ -347,13 +347,24 @@ PRIVATE void onClose ( HWND hwnd ) {
 
 PRIVATE void openFile( HWND hwnd, const String& str ) {
 
+   for ( int index = 0; index < static_cast< int >( s_tabPaths.size() ); ++index ) {
+      if ( areFileNamesEqual( s_tabPaths[ index ], str ) ) {
+         selectTab( hwnd, index );
+         return;
+      }
+   }
+
    Editor *pEditor = getEditor( hwnd );
    if ( pEditor->saveIfNecessary() ) {
       pEditor->saveState();
       pEditor->openFile( str );
       if ( areFileNamesEqual( pEditor->getDocument()->getPath(), str ) ) {
-         s_tabPaths[ s_nCurrentTab ] = pEditor->getDocument()->getPath();
+         s_tabPaths.push_back( pEditor->getDocument()->getPath() );
+         s_nCurrentTab = static_cast< int >( s_tabPaths.size() ) - 1;
+         insertTab( s_nCurrentTab, s_tabPaths[ s_nCurrentTab ] );
+         TabCtrl_SetCurSel( s_hwndTabBar, s_nCurrentTab );
          setTabItem( s_nCurrentTab, pEditor->getDocument()->getTitle() );
+         pEditor->setTitle();
       }
    }
    enablePaste( hwnd );
