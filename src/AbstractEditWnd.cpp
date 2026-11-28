@@ -31,6 +31,17 @@ PRIVATE LRESULT CALLBACK editParentSpy(
    HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam ) 
 {
    assert( IsWindow( hwnd ) );
+   if ( WM_VSCROLL == msg ) {
+      AbstractEditWnd *pEditWnd = reinterpret_cast<
+         AbstractEditWnd * >( parentSpy.getUserData( hwnd ) );
+      if ( 0 != pEditWnd ) {
+         assert( isGoodPtr( pEditWnd ) );
+         EditListener *pListener = pEditWnd->getEditListener();
+         if ( 0 != pListener ) {
+            pListener->onViewChange();
+         }
+      }
+   }
    if ( WM_COMMAND == msg ) {
       AbstractEditWnd *pEditWnd = reinterpret_cast< 
          AbstractEditWnd * >( parentSpy.getUserData( hwnd ) );
